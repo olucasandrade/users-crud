@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import CreateUserModal from './CreateUserModal'
 import ViewUserModal from './ViewUserModal'
+import DeleteUserModal from './DeleteUserModal'
 import axios from 'axios'
 
 interface User {
@@ -16,6 +17,7 @@ interface User {
 export default function Users() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [viewUserId, setViewUserId] = useState<string | null>(null)
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const { data: users = [] } = useQuery<User[]>({
@@ -28,6 +30,16 @@ export default function Users() {
         console.error(error)
         return []
       }
+    }
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      setDeleteUserId(null)
     }
   })
 
@@ -44,7 +56,7 @@ export default function Users() {
   }
 
   const handleDelete = (id: string) => {
-    // TODO: Implement delete user
+    setDeleteUserId(id)
   }
 
   return (
@@ -113,6 +125,13 @@ export default function Users() {
         isOpen={!!viewUserId}
         onClose={() => setViewUserId(null)}
         userId={viewUserId}
+      />
+
+      <DeleteUserModal
+        isOpen={!!deleteUserId}
+        onClose={() => setDeleteUserId(null)}
+        onConfirm={() => deleteUserId && deleteMutation.mutate(deleteUserId)}
+        isDeleting={deleteMutation.isPending}
       />
     </div>
   )
