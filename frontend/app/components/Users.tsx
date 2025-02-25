@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import CreateUserModal from './CreateUserModal'
+import ViewUserModal from './ViewUserModal'
 import axios from 'axios'
 
 interface User {
@@ -14,6 +15,7 @@ interface User {
 
 export default function Users() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [viewUserId, setViewUserId] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const { data: users = [] } = useQuery<User[]>({
@@ -38,7 +40,7 @@ export default function Users() {
   }
 
   const handleView = (id: string) => {
-    // TODO: Implement view user
+    setViewUserId(id)
   }
 
   const handleDelete = (id: string) => {
@@ -105,6 +107,12 @@ export default function Users() {
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['users'] })
         }}
+      />
+
+      <ViewUserModal
+        isOpen={!!viewUserId}
+        onClose={() => setViewUserId(null)}
+        userId={viewUserId}
       />
     </div>
   )
