@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -18,7 +20,12 @@ export class UsersController {
 
   @Post()
   create(@Body() createUserDto: CreateUserDto): Promise<UserModel> {
-    return this.usersService.create(createUserDto);
+    return this.usersService.create(createUserDto).catch((e: Error) => {
+      if (e.message.includes('unique')) {
+        throw new BadRequestException('User with this email already exists');
+      }
+      throw new InternalServerErrorException('Unknown error');
+    });
   }
 
   @Get()
