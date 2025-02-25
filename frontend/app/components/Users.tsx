@@ -1,22 +1,36 @@
 "use client"
 
 import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import CreateUserModal from './CreateUserModal'
+import axios from 'axios'
 
 interface User {
   id: string
-  name: string
+  firstName: string
+  lastName: string
   email: string
-  createdAt: string
 }
 
 export default function Users() {
-  const [users] = useState<User[]>([
-    { id: '1', name: 'John Doe', email: 'john@example.com', createdAt: '2024-01-20' },
-    { id: '2', name: 'Jane Smith', email: 'jane@example.com', createdAt: '2024-01-21' },
-  ])
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const queryClient = useQueryClient()
+
+  const { data: users = [] } = useQuery<User[]>({
+    queryKey: ['users'],
+    queryFn: async () => {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users`)
+        return response.data
+      } catch (error) {
+        console.error(error)
+        return []
+      }
+    }
+  })
 
   const handleCreate = () => {
-    // TODO: Implement create user
+    setIsCreateModalOpen(true)
   }
 
   const handleUpdate = (id: string) => {
@@ -47,18 +61,18 @@ export default function Users() {
         <table className="min-w-full bg-gray-800">
           <thead className="bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">First Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Last Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Created At</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700">
             {users.map((user) => (
               <tr key={user.id} className="hover:bg-gray-700 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-gray-300">{user.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-300">{user.firstName}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-300">{user.lastName}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-gray-300">{user.email}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-gray-300">{user.createdAt}</td>
                 <td className="px-6 py-4 whitespace-nowrap space-x-2">
                   <button
                     onClick={() => handleView(user.id)}
@@ -84,6 +98,14 @@ export default function Users() {
           </tbody>
         </table>
       </div>
+
+      <CreateUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['users'] })
+        }}
+      />
     </div>
   )
 }
