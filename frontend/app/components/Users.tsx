@@ -5,6 +5,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import CreateUserModal from './CreateUserModal'
 import ViewUserModal from './ViewUserModal'
 import DeleteUserModal from './DeleteUserModal'
+import UpdateUserModal from './UpdateUserModal'
 import axios from 'axios'
 
 interface User {
@@ -17,6 +18,7 @@ interface User {
 export default function Users() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [viewUserId, setViewUserId] = useState<string | null>(null)
+  const [updateUserId, setUpdateUserId] = useState<string | null>(null)
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
@@ -48,7 +50,7 @@ export default function Users() {
   }
 
   const handleUpdate = (id: string) => {
-    // TODO: Implement update user
+    setUpdateUserId(id)
   }
 
   const handleView = (id: string) => {
@@ -125,6 +127,15 @@ export default function Users() {
         isOpen={!!viewUserId}
         onClose={() => setViewUserId(null)}
         userId={viewUserId}
+      />
+
+      <UpdateUserModal
+        isOpen={!!updateUserId}
+        onClose={() => setUpdateUserId(null)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['users'] })
+        }}
+        userId={updateUserId}
       />
 
       <DeleteUserModal
