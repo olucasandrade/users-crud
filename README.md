@@ -107,6 +107,6 @@ npx prisma migrate dev
 
 The backend uses Jest for unit and integration testing. To run the tests:
 ```bashID
-cd backendr
+cd backend
 npm run test
-``
+```
